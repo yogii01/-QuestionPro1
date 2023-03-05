@@ -1,0 +1,54 @@
+@RestController
+public class HackerNewsController {
+    private final RestTemplate restTemplate;
+
+    public HackerNewsController(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
+    // Endpoint to get the top 10 stories ranked by the score in the last 15 minutes
+    @GetMapping("/top-stories")
+    public List<Story> getTopStories() {
+        List<Story> topStories = new ArrayList<>();
+        long fifteenMinutesAgo = System.currentTimeMillis() - (15 * 60 * 1000);
+        int[] topStoryIds = restTemplate.getForObject("https://hacker-news.firebaseio.com/v0/topstories.json", int[].class);
+        for (int storyId : Arrays.copyOfRange(topStoryIds, 0, 10)) {
+            Story story = restTemplate.getForObject("https://hacker-news.firebaseio.com/v0/item/" + storyId + ".json", Story.class);
+            if (story != null && story.getTime() * 1000 > fifteenMinutesAgo) {
+                topStories.add(story);
+            }
+        }
+        return topStories;
+    }
+
+    // Endpoint to get all the stories that were served previously from the 1st endpoint
+    @GetMapping("/past-stories")
+    public List<Story> getPastStories() {
+        List<Story> pastStories = new ArrayList<>();
+        long fifteenMinutesAgo = System.currentTimeMillis() - (15 * 60 * 1000);
+        int[] topStoryIds = restTemplate.getForObject("https://hacker-news.firebaseio.com/v0/topstories.json", int[].class);
+        for (int storyId : Arrays.copyOfRange(topStoryIds, 0, 10)) {
+            Story story = restTemplate.getForObject("https://hacker-news.firebaseio.com/v0/item/" + storyId + ".json", Story.class);
+            if (story != null && story.getTime() * 1000 <= fifteenMinutesAgo) {
+                pastStories.add(story);
+            }
+        }
+        return pastStories;
+    }
+
+    // Endpoint to get 10 comments (max) on a given story sorted by a total number of child comments
+    @GetMapping("/comments/{storyId}")
+    public List<Comment> getComments(@PathVariable int storyId) {
+        List<Comment> comments = new ArrayList<>();
+        Item story = restTemplate.getForObject("https://hacker-news.firebaseio.com/v0/item/" + storyId + ".json", Item.class);
+        if (story.getType().equals("story")) {
+            int[] commentIds = story.getKids();
+            if (commentIds != null) {
+                List<Item> commentItems = new ArrayList<>();
+                for (int commentId : Arrays.copyOfRange(commentIds, 0, 10)) {
+                    Item comment = restTemplate.getForObject("https://hacker-news.firebaseio.com/v0/item/" + storyId + ".json", Item.class);
+}
+}
+}
+return commentIds;
+}
